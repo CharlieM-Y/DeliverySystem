@@ -8,10 +8,13 @@ namespace DeliverySystem.Models
     public class DBcontext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
-
         public DbSet<Customer> Customers { get; set; }
         public DbSet<OfficeStaff> OfficeStaff { get; set; }
         public DbSet<DeliveryStaff> DeliveryStaff { get; set; }
+
+        // New DbSets
+        public DbSet<Delivery> Deliveries { get; set; }
+        public DbSet<Parcel> Parcels { get; set; }
 
         protected override void OnConfiguring(
             DbContextOptionsBuilder optionsBuilder)
@@ -24,17 +27,19 @@ namespace DeliverySystem.Models
             modelBuilder.Entity<Account>()
                 .HasKey(a => a.Id);
 
-            modelBuilder.Entity<Customer>()
-                .HasBaseType<Account>();
+            modelBuilder.Entity<Delivery>()
+                .HasMany(d => d.Parcels)
+                .WithOne(p => p.Delivery)
+                .HasForeignKey(p => p.DeliveryId);
 
-            modelBuilder.Entity<OfficeStaff>()
-                .HasBaseType<Account>();
-
-            modelBuilder.Entity<DeliveryStaff>()
-                .HasBaseType<Account>();
+            modelBuilder.Entity<Delivery>()
+                .HasOne(d => d.DeliveryStaff)
+                .WithMany()
+                .HasForeignKey(d => d.DeliveryStaffId);
         }
+    
 
-        public void SeedData()
+    public void SeedData()
         {
             if (!Accounts.Any())
             {
@@ -82,7 +87,50 @@ namespace DeliverySystem.Models
                     }
                 );
 
-                SaveChanges();
+                if (!Deliveries.Any())
+                {
+                    var delivery1 = new Delivery
+                    {
+                        Status = DeliveryStatus.Pending,
+                        Parcels = new List<Parcel>
+                    {
+                        new Parcel
+                        {
+                            Length = 30,
+                            Width = 20,
+                            Height = 15,
+                            Weight = 2.5
+                        },
+                        new Parcel
+                        {
+                            Length = 40,
+                            Width = 30,
+                            Height = 20,
+                            Weight = 5.0
+                        }
+                    }
+                    };
+
+                    var delivery2 = new Delivery
+                    {
+                        Status = DeliveryStatus.Delivered,
+                        Parcels = new List<Parcel>
+                        {
+                            new Parcel
+                            {
+                                Length = 15,
+                                Width = 10,
+                                Height = 10,
+                                Weight = 1.2
+                            }
+                        }
+                    };
+
+                    Deliveries.AddRange(delivery1, delivery2);
+
+                }
+
+                    SaveChanges();
             }
         }
     }

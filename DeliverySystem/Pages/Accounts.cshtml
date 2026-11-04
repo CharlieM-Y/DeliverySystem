@@ -1,35 +1,104 @@
 ﻿@page
 @model DeliverySystem.Pages.AccountsModel
 @using DeliverySystem.Models
-@{
 
-    <h1>Accounts:</h1>
+<h1>Account Management Portal</h1>
+<div class="card">
+<h2>Create Account</h2>
+<label>Account Type:</label>
+<select id="accountType" onchange="showForm()">
+    <option value="customer">Customer</option>
+    <option value="office">Office Staff</option>
+    <option value="delivery">Delivery Staff</option>
+</select>
 
-    <form method="post">
-        <input type="text" name="name" />
-        <input type="number" name="age" />
+<hr />
 
-        <button type="submit">Add</button>
+<!-- CUSTOMER FORM -->
+<div id="customerForm">
+    <h3>Create Customer</h3>
+
+    <form method="post" asp-page-handler="Customer">
+        <input asp-for="NewCustomer.Name" placeholder="Name" />
+        <input asp-for="NewCustomer.Email" placeholder="Email" />
+        <input asp-for="NewCustomer.DeliveryAddress"
+               placeholder="Delivery Address" />
+
+        <button type="submit">Create Customer</button>
     </form>
-    <table class="table">
-    
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Age</th>
-            </tr>
-        </thead>
+</div>
 
-        <tbody>
-            @foreach(Account account in Model.Accounts) {
-                <tr>
-                    <td>@account.Id</td>
-                    <td>@account.Name</td>
-                    <td>@account.Email</td>
-                </tr>
-            }
-        </tbody>
-    
-    </table>
-}
+<!-- OFFICE STAFF FORM -->
+<div id="officeForm" style="display:none;">
+    <h3>Create Office Staff</h3>
+
+    <form method="post" asp-page-handler="OfficeStaff">
+        <input asp-for="NewOfficeStaff.Name" placeholder="Name" />
+        <input asp-for="NewOfficeStaff.Email" placeholder="Email" />
+        <input asp-for="NewOfficeStaff.Department"
+               placeholder="Department" />
+
+        <button type="submit">Create Office Staff</button>
+    </form>
+</div>
+
+<!-- DELIVERY STAFF FORM -->
+<div id="deliveryForm" style="display:none;">
+    <h3>Create Delivery Staff</h3>
+
+    <form method="post" asp-page-handler="DeliveryStaff">
+        <input asp-for="NewDeliveryStaff.Name" placeholder="Name" />
+        <input asp-for="NewDeliveryStaff.Email" placeholder="Email" />
+
+        <label>
+            <input asp-for="NewDeliveryStaff.IsAvailable" />
+            Available
+        </label>
+
+        <button type="submit">Create Delivery Staff</button>
+    </form>
+</div>
+
+</div>
+<br />
+
+<div class="card">
+<h2>Accounts</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Account account in Model.Accounts)
+        {
+            <tr>
+                <td>@account.Id</td>
+                <td>@account.Name</td>
+                <td>@account.Email</td>
+                <td>@account.GetType().Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+
+<script>
+    function showForm() {
+        const type = document.getElementById("accountType").value;
+
+        document.getElementById("customerForm").style.display =
+            type === "customer" ? "block" : "none";
+
+        document.getElementById("officeForm").style.display =
+            type === "office" ? "block" : "none";
+
+        document.getElementById("deliveryForm").style.display =
+            type === "delivery" ? "block" : "none";
+    }
+</script>

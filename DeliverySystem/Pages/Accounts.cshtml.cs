@@ -8,9 +8,17 @@ namespace DeliverySystem.Pages
     {
         private readonly DBcontext _dbcontext;
 
-        public List<Account> Accounts { get; set; } = new List<Account>();
+        public List<Account> Accounts { get; set; } = new();
 
-        [BindProperty] public Account NewAccount { get; set; }
+        [BindProperty]
+        public Customer NewCustomer { get; set; } = new();
+
+        [BindProperty]
+        public OfficeStaff NewOfficeStaff { get; set; } = new();
+
+        [BindProperty]
+        public DeliveryStaff NewDeliveryStaff { get; set; } = new();
+
         public AccountsModel(DBcontext dbcontext)
         {
             _dbcontext = dbcontext;
@@ -21,11 +29,27 @@ namespace DeliverySystem.Pages
             Accounts = _dbcontext.Accounts.ToList();
         }
 
-        public IActionResult OnPost()
+        public IActionResult OnPostCustomer()
         {
-            
-            _dbcontext.Accounts.Add(NewAccount);
+            _dbcontext.Customers.Add(NewCustomer);
             _dbcontext.SaveChanges();
+
+            return RedirectToPage();
+        }
+
+        public IActionResult OnPostOfficeStaff()
+        {
+            _dbcontext.OfficeStaff.Add(NewOfficeStaff);
+            _dbcontext.SaveChanges();
+
+            return RedirectToPage();
+        }
+
+        public IActionResult OnPostDeliveryStaff()
+        {
+            _dbcontext.DeliveryStaff.Add(NewDeliveryStaff);
+            _dbcontext.SaveChanges();
+
             return RedirectToPage();
         }
     }

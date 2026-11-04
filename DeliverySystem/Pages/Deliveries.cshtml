@@ -1,0 +1,124 @@
+﻿@page
+@model DeliverySystem.Pages.DeliveriesModel
+@using DeliverySystem.Models
+
+@{
+    ViewData["Title"] = "Deliveries";
+}
+
+<h1>Deliveries</h1>
+
+<p>View and manage all deliveries in the system.</p>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Delivery ID</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Delivery Staff</th>
+            <th>Parcels</th>
+            <th>Parcel Details</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (Delivery delivery in Model.Deliveries)
+        {
+            <tr>
+                <td>@delivery.Id</td>
+
+                <td>
+                    @switch (delivery.Status)
+                    {
+                        case DeliveryStatus.Pending:
+                            <span class="badge bg-warning text-dark">
+                                Pending
+                            </span>
+                            break;
+
+                        case DeliveryStatus.Allocated:
+                            <span class="badge bg-info text-dark">
+                                Allocated
+                            </span>
+                            break;
+
+                        case DeliveryStatus.ReadyForDelivery:
+                            <span class="badge bg-primary">
+                                Ready for Delivery
+                            </span>
+                            break;
+
+                        case DeliveryStatus.PickedUp:
+                            <span class="badge bg-primary">
+                                Picked Up
+                            </span>
+                            break;
+
+                        case DeliveryStatus.Delivered:
+                            <span class="badge bg-success">
+                                Delivered
+                            </span>
+                            break;
+
+                        case DeliveryStatus.Failed:
+                            <span class="badge bg-danger">
+                                Failed
+                            </span>
+                            break;
+                    }
+                </td>
+
+                <td>
+                    @delivery.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </td>
+
+                <td>
+                    @(delivery.DeliveryStaff?.Name ?? "Unassigned")
+                </td>
+
+                <td>
+                    @delivery.Parcels.Count
+                </td>
+
+                <td>
+                    @if (delivery.Parcels.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (Parcel parcel in delivery.Parcels)
+                            {
+                                <li class="mb-2">
+                                    <strong>Parcel:</strong>
+                                    @parcel.Id
+                                    <br />
+
+                                    <strong>Weight:</strong>
+                                    @parcel.Weight kg
+                                    <br />
+
+                                    <strong>Dimensions:</strong>
+                                    @parcel.Length x
+                                    @parcel.Width x
+                                    @parcel.Height cm
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+                            No parcels
+                        </span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Deliveries.Any())
+{
+    <div class="alert alert-info">
+        No deliveries have been created yet.
+    </div>
+}

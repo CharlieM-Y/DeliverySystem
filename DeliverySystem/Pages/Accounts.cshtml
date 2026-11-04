@@ -1,0 +1,35 @@
+﻿@page
+@model DeliverySystem.Pages.AccountsModel
+@using DeliverySystem.Models
+@{
+
+    <h1>Accounts:</h1>
+
+    <form method="post">
+        <input type="text" name="name" />
+        <input type="number" name="age" />
+
+        <button type="submit">Add</button>
+    </form>
+    <table class="table">
+    
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach(Account account in Model.Accounts) {
+                <tr>
+                    <td>@account.Id</td>
+                    <td>@account.Name</td>
+                    <td>@account.Age</td>
+                </tr>
+            }
+        </tbody>
+    
+    </table>
+}

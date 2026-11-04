@@ -2,6 +2,6 @@
 {
     public class Customer : Account
     {
-        public string? Department { get; set; }
+        public string? DeliveryAddress { get; set; }
     }
 }

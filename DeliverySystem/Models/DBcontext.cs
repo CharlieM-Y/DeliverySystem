@@ -1,33 +1,89 @@
 ﻿using DeliverySystem.Pages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.InMemory;
+using Microsoft.EntityFrameworkCore;
+
 namespace DeliverySystem.Models
 {
     public class DBcontext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<OfficeStaff> OfficeStaff { get; set; }
+        public DbSet<DeliveryStaff> DeliveryStaff { get; set; }
+
+        protected override void OnConfiguring(
+            DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseInMemoryDatabase("MyDb");
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Account>()
+                .HasKey(a => a.Id);
+
+            modelBuilder.Entity<Customer>()
+                .HasBaseType<Account>();
+
+            modelBuilder.Entity<OfficeStaff>()
+                .HasBaseType<Account>();
+
+            modelBuilder.Entity<DeliveryStaff>()
+                .HasBaseType<Account>();
+        }
+
         public void SeedData()
         {
-            // Only add dummy accounts if the database is empty
             if (!Accounts.Any())
             {
                 Accounts.AddRange(
-                    new Account { Name = "John Smith", Age = 25 },
-                    new Account { Name = "Jane Doe", Age = 30 },
-                    new Account { Name = "Michael Brown", Age = 22 },
-                    new Account { Name = "Sarah Wilson", Age = 28 },
-                    new Account { Name = "David Lee", Age = 35 }
+                    new Customer
+                    {
+                        Name = "John Smith",
+                        Email = "john@example.com",
+                        DeliveryAddress = "Melbourne VIC"
+                    },
+
+                    new Customer
+                    {
+                        Name = "Jane Doe",
+                        Email = "jane@example.com",
+                        DeliveryAddress = "Richmond VIC"
+                    },
+
+                    new OfficeStaff
+                    {
+                        Name = "Michael Brown",
+                        Email = "michael@example.com",
+                        Department = "Operations"
+                    },
+
+                    new OfficeStaff
+                    {
+                        Name = "Sarah Wilson",
+                        Email = "sarah@example.com",
+                        Department = "Customer Service"
+                    },
+
+                    new DeliveryStaff
+                    {
+                        Name = "David Lee",
+                        Email = "david@example.com",
+                        IsAvailable = true,
+                    },
+
+                    new DeliveryStaff
+                    {
+                        Name = "Emily Chen",
+                        Email = "emily@example.com",
+                        IsAvailable = false,
+                    }
                 );
 
                 SaveChanges();
             }
         }
-
     }
 }

@@ -4,6 +4,10 @@
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        // Customer relationship
+        public Guid CustomerId { get; set; }
+        public Customer Customer { get; set; } = null!;
+
         // Current delivery status
         public DeliveryStatus Status { get; set; }
             = DeliveryStatus.Pending;

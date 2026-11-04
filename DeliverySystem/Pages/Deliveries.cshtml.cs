@@ -19,6 +19,7 @@ namespace DeliverySystem.Pages
         public void OnGet()
         {
             Deliveries = _dbcontext.Deliveries
+                .Include(d => d.Customer)
                 .Include(d => d.Parcels)
                 .Include(d => d.DeliveryStaff)
                 .OrderByDescending(d => d.CreatedAt)

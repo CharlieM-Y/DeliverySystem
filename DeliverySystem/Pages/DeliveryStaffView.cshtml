@@ -1,0 +1,327 @@
+﻿@page
+@model DeliverySystem.Pages.DeliveryStaffViewModel
+@using DeliverySystem.Models
+
+@{
+    ViewData["Title"] = "Delivery Staff Dashboard";
+}
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1>Delivery Staff Dashboard</h1>
+
+            <p class="text-muted">
+                Welcome, @Model.CurrentStaff?.Name
+            </p>
+        </div>
+
+        <a asp-page="/Index"
+           class="btn btn-outline-secondary">
+            Switch Account
+        </a>
+
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- ERROR MESSAGES -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All"
+             class="alert alert-danger">
+        </div>
+    }
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>Total Assigned Deliveries</h6>
+
+                    <h2>@Model.TotalAssigned</h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>In Progress</h6>
+
+                    <h2>@Model.InProgressCount</h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>Completed</h6>
+
+                    <h2>@Model.CompletedCount</h2>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ASSIGNED DELIVERIES -->
+
+    <section class="card mb-4">
+
+        <div class="card-header">
+            <h4>My Assigned Deliveries</h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.Deliveries.Any())
+            {
+                <div class="alert alert-info">
+                    You currently have no assigned deliveries.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-striped table-bordered">
+
+                        <thead>
+                            <tr>
+                                <th>Delivery ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Parcels</th>
+                                <th>Update Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var delivery in Model.Deliveries)
+                            {
+                                <tr>
+
+                                    <!-- DELIVERY ID -->
+
+                                    <td>
+                                        <small>
+                                            @delivery.Id
+                                        </small>
+                                    </td>
+
+                                    <!-- CUSTOMER -->
+
+                                    <td>
+                                        <strong>
+                                            @delivery.Customer?.Name
+                                        </strong>
+
+                                        <br />
+
+                                        <small class="text-muted">
+                                            @delivery.Customer?.Email
+                                        </small>
+
+                                        <br />
+
+                                        <small>
+                                            @delivery.Customer?.DeliveryAddress
+                                        </small>
+                                    </td>
+
+                                    <!-- STATUS -->
+
+                                    <td>
+
+                                        @switch (delivery.Status)
+                                        {
+                                            case DeliveryStatus.Pending:
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Pending
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Allocated:
+
+                                                <span class="badge bg-info text-dark">
+                                                    Allocated
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.ReadyForDelivery:
+
+                                                <span class="badge bg-primary">
+                                                    Ready for Delivery
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.PickedUp:
+
+                                                <span class="badge bg-primary">
+                                                    Picked Up
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Delivered:
+
+                                                <span class="badge bg-success">
+                                                    Delivered
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Failed:
+
+                                                <span class="badge bg-danger">
+                                                    Failed
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    <!-- CREATED DATE -->
+
+                                    <td>
+                                        @delivery.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+
+                                    <!-- PARCEL DETAILS -->
+
+                                    <td>
+
+                                        @if (delivery.Parcels.Any())
+                                        {
+                                            @foreach (var parcel in delivery.Parcels)
+                                            {
+                                                <div class="mb-3">
+
+                                                    <strong>Parcel ID:</strong>
+                                                    <br />
+                                                    <small>@parcel.Id</small>
+
+                                                    <br />
+
+                                                    <strong>Weight:</strong>
+                                                    @parcel.Weight kg
+
+                                                    <br />
+
+                                                    <strong>Dimensions:</strong>
+                                                    @parcel.Length x
+                                                    @parcel.Width x
+                                                    @parcel.Height cm
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No parcels
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- UPDATE STATUS -->
+
+                                    <td>
+
+                                        @if (delivery.Status == DeliveryStatus.Delivered ||
+                                       delivery.Status == DeliveryStatus.Failed)
+                                        {
+                                            <span class="text-muted">
+                                                Delivery finished
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="UpdateStatus">
+
+                                                <input type="hidden"
+                                                       name="StatusInput.DeliveryId"
+                                                       value="@delivery.Id" />
+
+                                                <div class="mb-2">
+
+                                                    <select name="StatusInput.Status"
+                                                            class="form-select">
+
+                                                        <option value="ReadyForDelivery">
+                                                            Ready for Delivery
+                                                        </option>
+
+                                                        <option value="PickedUp">
+                                                            Picked Up
+                                                        </option>
+
+                                                        <option value="Delivered">
+                                                            Delivered
+                                                        </option>
+
+                                                        <option value="Failed">
+                                                            Failed
+                                                        </option>
+
+                                                    </select>
+
+                                                </div>
+
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-sm">
+                                                    Update Status
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </section>
+
+</div>

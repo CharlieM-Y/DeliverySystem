@@ -1,0 +1,383 @@
+﻿@page
+@model DeliverySystem.Pages.CustomerViewModel
+@using DeliverySystem.Models
+
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1>Customer Dashboard</h1>
+
+            <p class="text-muted">
+                Welcome, @Model.CurrentCustomer?.Name
+            </p>
+        </div>
+
+        <a asp-page="/Index"
+           class="btn btn-outline-secondary">
+            Switch Account
+        </a>
+
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- VALIDATION ERRORS -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All"
+             class="alert alert-danger"></div>
+    }
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>Total Deliveries</h6>
+                    <h2>@Model.TotalDeliveries</h2>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>Active Deliveries</h6>
+                    <h2>@Model.ActiveDeliveries</h2>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+
+                    <h6>Completed Deliveries</h6>
+                    <h2>@Model.CompletedDeliveries</h2>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PAGE NAVIGATION -->
+
+    <ul class="nav nav-pills mb-4">
+
+        <li class="nav-item">
+            <a class="nav-link" href="#deliveries">
+                My Deliveries
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="#profile">
+                Edit Profile
+            </a>
+        </li>
+
+    </ul>
+
+    <!-- MY DELIVERIES -->
+
+    <section id="deliveries" class="card mb-4">
+
+        <div class="card-header">
+            <h4>My Deliveries</h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.Deliveries.Any())
+            {
+                <div class="alert alert-info">
+                    You currently have no deliveries.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-striped table-bordered">
+
+                        <thead>
+                            <tr>
+                                <th>Delivery ID</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Delivery Staff</th>
+                                <th>Parcels</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var delivery in Model.Deliveries)
+                            {
+                                <tr>
+
+                                    <!-- DELIVERY ID -->
+
+                                    <td>
+                                        <small>
+                                            @delivery.Id
+                                        </small>
+                                    </td>
+
+                                    <!-- DELIVERY STATUS -->
+
+                                    <td>
+
+                                        @switch (delivery.Status)
+                                        {
+                                            case DeliveryStatus.Pending:
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Pending
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Allocated:
+
+                                                <span class="badge bg-info text-dark">
+                                                    Allocated
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.ReadyForDelivery:
+
+                                                <span class="badge bg-primary">
+                                                    Ready for Delivery
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.PickedUp:
+
+                                                <span class="badge bg-primary">
+                                                    Picked Up
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Delivered:
+
+                                                <span class="badge bg-success">
+                                                    Delivered
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Failed:
+
+                                                <span class="badge bg-danger">
+                                                    Failed
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    <!-- CREATED DATE -->
+
+                                    <td>
+                                        @delivery.CreatedAt
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+
+                                    <!-- ASSIGNED DELIVERY STAFF -->
+
+                                    <td>
+
+                                        @if (delivery.DeliveryStaff != null)
+                                        {
+                                            <strong>
+                                                @delivery.DeliveryStaff.Name
+                                            </strong>
+
+                                            <br />
+
+                                            <small class="text-muted">
+                                                @delivery.DeliveryStaff.Email
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not assigned yet
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- PARCEL DETAILS -->
+
+                                    <td>
+
+                                        @if (delivery.Parcels.Any())
+                                        {
+                                            @foreach (var parcel in delivery.Parcels)
+                                            {
+                                                <div class="mb-3">
+
+                                                    <strong>Parcel ID:</strong>
+                                                    <br />
+                                                    <small>@parcel.Id</small>
+
+                                                    <br />
+
+                                                    <strong>Weight:</strong>
+                                                    @parcel.Weight kg
+
+                                                    <br />
+
+                                                    <strong>Dimensions:</strong>
+                                                    @parcel.Length x
+                                                    @parcel.Width x
+                                                    @parcel.Height cm
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No parcels
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </section>
+
+    <!-- EDIT PROFILE -->
+
+    <section id="profile" class="card mb-5">
+
+        <div class="card-header">
+            <h4>Edit My Profile</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form method="post"
+                  asp-page-handler="UpdateProfile">
+
+                <!-- NAME -->
+
+                <div class="mb-3">
+
+                    <label asp-for="ProfileInput.Name"
+                           class="form-label">
+                        Full Name
+                    </label>
+
+                    <input asp-for="ProfileInput.Name"
+                           class="form-control" />
+
+                    <span asp-validation-for="ProfileInput.Name"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- EMAIL -->
+
+                <div class="mb-3">
+
+                    <label asp-for="ProfileInput.Email"
+                           class="form-label">
+                        Email Address
+                    </label>
+
+                    <input asp-for="ProfileInput.Email"
+                           type="email"
+                           class="form-control" />
+
+                    <span asp-validation-for="ProfileInput.Email"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- DELIVERY ADDRESS -->
+
+                <div class="mb-3">
+
+                    <label asp-for="ProfileInput.DeliveryAddress"
+                           class="form-label">
+                        Delivery Address
+                    </label>
+
+                    <input asp-for="ProfileInput.DeliveryAddress"
+                           class="form-control" />
+
+                    <span asp-validation-for="ProfileInput.DeliveryAddress"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- PASSWORD -->
+
+                <div class="mb-3">
+
+                    <label asp-for="ProfileInput.Password"
+                           class="form-label">
+                        New Password
+                    </label>
+
+                    <input asp-for="ProfileInput.Password"
+                           type="password"
+                           class="form-control"
+                           placeholder="Leave blank to keep current password" />
+
+                    <small class="text-muted">
+                        Leave this field empty if you do not want
+                        to change your password.
+                    </small>
+
+                </div>
+
+                <!-- SUBMIT -->
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Save Changes
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+</div>

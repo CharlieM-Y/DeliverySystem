@@ -8,7 +8,16 @@ builder.Services.AddRazorPages();
 //Register the database context
 builder.Services.AddDbContext<DBcontext>();
 
+//Setup session state
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
+
+
 var app = builder.Build();
+
+//Setup routing for session state
+app.UseRouting();
+app.UseSession();
 
 // Seed the database at startup
 using (var scope = app.Services.CreateScope())

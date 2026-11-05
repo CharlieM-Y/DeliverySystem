@@ -96,6 +96,25 @@ namespace DeliverySystem.Pages
             return Page();
         }
 
+        // CLOCK IN / CLOCK OUT
+
+        public async Task<IActionResult> OnPostToggleAvailabilityAsync()
+        {
+            if (!TryGetCurrentStaff())
+                return RedirectToPage("/Index");
+
+            // Toggle the current staff member's availability
+            CurrentStaff!.IsAvailable = !CurrentStaff.IsAvailable;
+
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = CurrentStaff.IsAvailable
+                ? "You have successfully clocked in."
+                : "You have successfully clocked out.";
+
+            return RedirectToPage();
+        }
+
         // UPDATE DELIVERY STATUS
 
         public async Task<IActionResult> OnPostUpdateStatusAsync()

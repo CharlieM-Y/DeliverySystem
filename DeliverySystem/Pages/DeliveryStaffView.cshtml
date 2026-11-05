@@ -61,6 +61,68 @@
 
         </div>
 
+
+        <!-- CLOCK IN / CLOCK OUT -->
+
+        <section class="card mb-4">
+
+            <div class="card-header">
+                <h4>Shift Status</h4>
+            </div>
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <div>
+                        <h5>Current Availability</h5>
+
+                        @if (Model.CurrentStaff?.IsAvailable == true)
+                        {
+                            <span class="badge bg-success">
+                                Available
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                Unavailable
+                            </span>
+                        }
+                    </div>
+
+                    <form method="post"
+                          asp-page-handler="ToggleAvailability">
+
+                        @if (Model.CurrentStaff?.IsAvailable == true)
+                        {
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                Clock Out
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Clock In
+                            </button>
+                        }
+
+                    </form>
+
+                </div>
+
+                <p class="text-muted mb-0">
+                    Clock in to become available for delivery assignments.
+                    Clock out when you are no longer available.
+                </p>
+
+            </div>
+
+        </section>
+
+
         <div class="col-md-4">
 
             <div class="card bg-light mb-3">

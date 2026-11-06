@@ -16,27 +16,42 @@ namespace DeliverySystem.Pages
             _db = db;
         }
 
-        // DISPLAY DATA
+        // ========================================
+        // CURRENT OFFICE STAFF
+        // ========================================
 
         public OfficeStaff? CurrentStaff { get; set; }
 
+        // ========================================
+        // DISPLAY DATA
+        // ========================================
+
         public List<Account> Accounts { get; set; } = new();
-        public List<Delivery> Deliveries { get; set; } = new();
+
         public List<Customer> Customers { get; set; } = new();
+
         public List<DeliveryStaff> Drivers { get; set; } = new();
 
+        public List<Delivery> Deliveries { get; set; } = new();
+
+        public List<DeliveryRequest> DeliveryRequests { get; set; } = new();
+
+        // ========================================
         // FORM INPUTS
+        // ========================================
 
         [BindProperty]
         public CreateAccountInput AccountInput { get; set; } = new();
 
         [BindProperty]
-        public CreateDeliveryInput DeliveryInput { get; set; } = new();
+        public QuoteRequestInput QuoteInput { get; set; } = new();
 
         [BindProperty]
         public AssignDeliveryInput AssignmentInput { get; set; } = new();
 
-        // INPUT MODELS
+        // ========================================
+        // CREATE ACCOUNT INPUT
+        // ========================================
 
         public class CreateAccountInput
         {
@@ -57,26 +72,31 @@ namespace DeliverySystem.Pages
 
             public string? Department { get; set; }
 
-            public bool IsAvailable { get; set; } = true;
+            public bool IsAvailable { get; set; } = false;
         }
 
-        public class CreateDeliveryInput
+        // ========================================
+        // QUOTE REQUEST INPUT
+        // ========================================
+
+        public class QuoteRequestInput
         {
             [Required]
-            public Guid CustomerId { get; set; }
+            public Guid RequestId { get; set; }
 
-            [Range(0.01, double.MaxValue)]
-            public double Length { get; set; }
+            [Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+            public decimal QuotedCost { get; set; }
 
-            [Range(0.01, double.MaxValue)]
-            public double Width { get; set; }
+            [Required]
+            public DateTime? EstimatedPickupTime { get; set; }
 
-            [Range(0.01, double.MaxValue)]
-            public double Height { get; set; }
-
-            [Range(0.01, double.MaxValue)]
-            public double Weight { get; set; }
+            [Required]
+            public DateTime? EstimatedDeliveryTime { get; set; }
         }
+
+        // ========================================
+        // ASSIGN DELIVERY INPUT
+        // ========================================
 
         public class AssignDeliveryInput
         {
@@ -87,7 +107,33 @@ namespace DeliverySystem.Pages
             public Guid DeliveryStaffId { get; set; }
         }
 
-        // SESSION CHECK
+        // ========================================
+        // DASHBOARD SUMMARY
+        // ========================================
+
+        public int TotalAccounts =>
+            Accounts.Count;
+
+        public int TotalDeliveries =>
+            Deliveries.Count;
+
+        public int PendingRequests =>
+            DeliveryRequests.Count(r =>
+                r.Status == DeliveryRequestStatus.PendingReview);
+
+        public int AwaitingResponseRequests =>
+            DeliveryRequests.Count(r =>
+                r.Status == DeliveryRequestStatus.AwaitingResponse);
+
+        public int UnassignedDeliveries =>
+            Deliveries.Count(d =>
+                d.DeliveryStaffId == null &&
+                d.Status != DeliveryStatus.Delivered &&
+                d.Status != DeliveryStatus.Failed);
+
+        // ========================================
+        // GET CURRENT OFFICE STAFF FROM SESSION
+        // ========================================
 
         private bool TryGetCurrentStaff()
         {
@@ -103,7 +149,9 @@ namespace DeliverySystem.Pages
             return CurrentStaff != null;
         }
 
-        // LOAD PAGE DATA
+        // ========================================
+        // LOAD ALL DASHBOARD DATA
+        // ========================================
 
         private async Task LoadDataAsync()
         {
@@ -125,7 +173,17 @@ namespace DeliverySystem.Pages
                 .Include(d => d.Parcels)
                 .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
+
+            DeliveryRequests = await _db.DeliveryRequests
+                .Include(r => r.Customer)
+                .Include(r => r.Parcels)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
         }
+
+        // ========================================
+        // DISPLAY PAGE
+        // ========================================
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -133,10 +191,13 @@ namespace DeliverySystem.Pages
                 return RedirectToPage("/Index");
 
             await LoadDataAsync();
+
             return Page();
         }
 
+        // ========================================
         // CREATE ACCOUNT
+        // ========================================
 
         public async Task<IActionResult> OnPostCreateAccountAsync()
         {
@@ -145,18 +206,21 @@ namespace DeliverySystem.Pages
 
             ModelState.Clear();
 
-            if (!TryValidateModel(AccountInput, nameof(AccountInput)))
+            if (!TryValidateModel(
+                AccountInput, nameof(AccountInput)))
             {
                 await LoadDataAsync();
                 return Page();
             }
 
-            if (await _db.Accounts.AnyAsync(
-                a => a.Email == AccountInput.Email))
+            bool emailExists = await _db.Accounts
+                .AnyAsync(a => a.Email == AccountInput.Email);
+
+            if (emailExists)
             {
                 ModelState.AddModelError(
                     "AccountInput.Email",
-                    "An account with this email already exists.");
+                    "This email address is already in use.");
 
                 await LoadDataAsync();
                 return Page();
@@ -167,6 +231,7 @@ namespace DeliverySystem.Pages
             switch (AccountInput.AccountType)
             {
                 case "Customer":
+
                     account = new Customer
                     {
                         Name = AccountInput.Name,
@@ -174,9 +239,11 @@ namespace DeliverySystem.Pages
                         Password = AccountInput.Password,
                         DeliveryAddress = AccountInput.DeliveryAddress
                     };
+
                     break;
 
                 case "OfficeStaff":
+
                     account = new OfficeStaff
                     {
                         Name = AccountInput.Name,
@@ -184,9 +251,11 @@ namespace DeliverySystem.Pages
                         Password = AccountInput.Password,
                         Department = AccountInput.Department
                     };
+
                     break;
 
                 case "DeliveryStaff":
+
                     account = new DeliveryStaff
                     {
                         Name = AccountInput.Name,
@@ -194,9 +263,11 @@ namespace DeliverySystem.Pages
                         Password = AccountInput.Password,
                         IsAvailable = AccountInput.IsAvailable
                     };
+
                     break;
 
                 default:
+
                     ModelState.AddModelError(
                         "AccountInput.AccountType",
                         "Invalid account type.");
@@ -206,17 +277,20 @@ namespace DeliverySystem.Pages
             }
 
             _db.Accounts.Add(account);
+
             await _db.SaveChangesAsync();
 
             TempData["SuccessMessage"] =
-                "Account created successfully.";
+                $"{AccountInput.AccountType} account created successfully.";
 
             return RedirectToPage();
         }
 
-        // CREATE DELIVERY
+        // ========================================
+        // QUOTE DELIVERY REQUEST
+        // ========================================
 
-        public async Task<IActionResult> OnPostCreateDeliveryAsync()
+        public async Task<IActionResult> OnPostQuoteRequestAsync()
         {
             if (!TryGetCurrentStaff())
                 return RedirectToPage("/Index");
@@ -224,54 +298,79 @@ namespace DeliverySystem.Pages
             ModelState.Clear();
 
             if (!TryValidateModel(
-                DeliveryInput, nameof(DeliveryInput)))
+                QuoteInput, nameof(QuoteInput)))
             {
                 await LoadDataAsync();
                 return Page();
             }
 
-            var customer = await _db.Customers
-                .FirstOrDefaultAsync(
-                    c => c.Id == DeliveryInput.CustomerId);
-
-            if (customer == null)
+            if (QuoteInput.RequestId == Guid.Empty)
             {
-                ModelState.AddModelError(
-                    "DeliveryInput.CustomerId",
-                    "Please select a valid customer.");
+                TempData["ErrorMessage"] =
+                    "Invalid delivery request.";
 
-                await LoadDataAsync();
-                return Page();
+                return RedirectToPage();
             }
 
-            var delivery = new Delivery
+            var request = await _db.DeliveryRequests
+                .FirstOrDefaultAsync(r =>
+                    r.Id == QuoteInput.RequestId);
+
+            if (request == null)
             {
-                CustomerId = customer.Id,
-                Status = DeliveryStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
+                TempData["ErrorMessage"] =
+                    "Delivery request not found.";
 
-                Parcels = new List<Parcel>
-                {
-                    new Parcel
-                    {
-                        Length = DeliveryInput.Length,
-                        Width = DeliveryInput.Width,
-                        Height = DeliveryInput.Height,
-                        Weight = DeliveryInput.Weight
-                    }
-                }
-            };
+                return RedirectToPage();
+            }
 
-            _db.Deliveries.Add(delivery);
+            if (request.Status !=
+                DeliveryRequestStatus.PendingReview)
+            {
+                TempData["ErrorMessage"] =
+                    "This request is no longer awaiting a quote.";
+
+                return RedirectToPage();
+            }
+
+            if (!QuoteInput.EstimatedPickupTime.HasValue ||
+                !QuoteInput.EstimatedDeliveryTime.HasValue ||
+                QuoteInput.EstimatedDeliveryTime.Value <=
+                    QuoteInput.EstimatedPickupTime.Value)
+            {
+                TempData["ErrorMessage"] =
+                    "Estimated delivery time must be after pickup time.";
+
+                return RedirectToPage();
+            }
+
+            // Save the quote
+
+            request.QuotedCost = QuoteInput.QuotedCost;
+
+            request.EstimatedPickupTime =
+                QuoteInput.EstimatedPickupTime;
+
+            request.EstimatedDeliveryTime =
+                QuoteInput.EstimatedDeliveryTime;
+
+            // The customer can now accept or decline
+
+            request.Status =
+                DeliveryRequestStatus.AwaitingResponse;
+
             await _db.SaveChangesAsync();
 
             TempData["SuccessMessage"] =
-                "Delivery created successfully.";
+                "Quote sent successfully. " +
+                "The customer can now accept or decline it.";
 
             return RedirectToPage();
         }
 
+        // ========================================
         // ASSIGN DELIVERY STAFF
+        // ========================================
 
         public async Task<IActionResult> OnPostAssignDeliveryAsync()
         {
@@ -288,52 +387,60 @@ namespace DeliverySystem.Pages
             }
 
             var delivery = await _db.Deliveries
-                .FirstOrDefaultAsync(
-                    d => d.Id == AssignmentInput.DeliveryId);
+                .FirstOrDefaultAsync(d =>
+                    d.Id == AssignmentInput.DeliveryId);
+
+            if (delivery == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Delivery not found.";
+
+                return RedirectToPage();
+            }
 
             var driver = await _db.DeliveryStaff
-                .FirstOrDefaultAsync(
-                    d => d.Id == AssignmentInput.DeliveryStaffId);
+                .FirstOrDefaultAsync(d =>
+                    d.Id == AssignmentInput.DeliveryStaffId);
 
-            if (delivery == null || driver == null)
+            if (driver == null)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Invalid delivery or delivery staff.");
+                TempData["ErrorMessage"] =
+                    "Delivery staff member not found.";
 
-                await LoadDataAsync();
-                return Page();
+                return RedirectToPage();
             }
 
-            // Only check IsAvailable
+            // Driver must be clocked in
+
             if (!driver.IsAvailable)
             {
-                ModelState.AddModelError(
-                    "",
-                    "The selected delivery staff member is unavailable.");
+                TempData["ErrorMessage"] =
+                    "This delivery staff member is clocked out.";
 
-                await LoadDataAsync();
-                return Page();
+                return RedirectToPage();
             }
+
+            // Completed deliveries cannot be assigned
 
             if (delivery.Status == DeliveryStatus.Delivered ||
                 delivery.Status == DeliveryStatus.Failed)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Completed or failed deliveries cannot be assigned.");
+                TempData["ErrorMessage"] =
+                    "Completed deliveries cannot be assigned.";
 
-                await LoadDataAsync();
-                return Page();
+                return RedirectToPage();
             }
 
+            // Assign delivery to driver
+
             delivery.DeliveryStaffId = driver.Id;
+
             delivery.Status = DeliveryStatus.Allocated;
 
             await _db.SaveChangesAsync();
 
             TempData["SuccessMessage"] =
-                "Delivery staff assigned successfully.";
+                $"Delivery assigned to {driver.Name} successfully.";
 
             return RedirectToPage();
         }

@@ -1,21 +1,24 @@
-﻿namespace DeliverySystem.Models
+﻿
+namespace DeliverySystem.Models
 {
     public class Parcel
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        // Parcel dimensions in centimetres
+        // Dimensions in centimetres
         public double Length { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
 
-        // Parcel weight in kilograms
+        // Weight in kilograms
         public double Weight { get; set; }
 
-        // Foreign key to the delivery
-        public Guid DeliveryId { get; set; }
-
-        // Navigation property
+        // Associated delivery (if accepted)
+        public Guid? DeliveryId { get; set; }
         public Delivery? Delivery { get; set; }
+
+        // Associated delivery request
+        public Guid? DeliveryRequestId { get; set; }
+        public DeliveryRequest? DeliveryRequest { get; set; }
     }
 }

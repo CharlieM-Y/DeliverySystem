@@ -13,6 +13,8 @@ namespace DeliverySystem.Models
         public DbSet<OfficeStaff> OfficeStaff { get; set; } = null!;
         public DbSet<DeliveryStaff> DeliveryStaff { get; set; } = null!;
 
+        public DbSet<DeliveryRequest> DeliveryRequests { get; set; } = null!;
+
         // Delivery tables
         public DbSet<Delivery> Deliveries { get; set; } = null!;
         public DbSet<Parcel> Parcels { get; set; } = null!;
@@ -83,7 +85,7 @@ namespace DeliverySystem.Models
                 .HasMany(d => d.Parcels)
                 .WithOne(p => p.Delivery)
                 .HasForeignKey(p => p.DeliveryId)
-                .IsRequired()
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One DeliveryStaff -> Many Deliveries
@@ -93,6 +95,37 @@ namespace DeliverySystem.Models
                 .HasForeignKey(d => d.DeliveryStaffId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
+
+
+            // DELIVERY REQUEST
+
+            modelBuilder.Entity<DeliveryRequest>()
+                .HasKey(r => r.Id);
+
+            // Each request belongs to one customer
+            modelBuilder.Entity<DeliveryRequest>()
+                .HasOne(r => r.Customer)
+                .WithMany()
+                .HasForeignKey(r => r.CustomerId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Each request can contain multiple parcels
+            modelBuilder.Entity<DeliveryRequest>()
+                .HasMany(r => r.Parcels)
+                .WithOne(p => p.DeliveryRequest)
+                .HasForeignKey(p => p.DeliveryRequestId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // An accepted request can be linked to one delivery
+            modelBuilder.Entity<DeliveryRequest>()
+                .HasOne(r => r.Delivery)
+                .WithOne()
+                .HasForeignKey<DeliveryRequest>(r => r.DeliveryId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
 
         // -----------------------------

@@ -11,16 +11,20 @@
     <!-- HEADER -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
+
         <div>
             <h1>Office Staff Dashboard</h1>
+
             <p class="text-muted">
                 Welcome, @Model.CurrentStaff?.Name
             </p>
         </div>
 
-        <a asp-page="/Index" class="btn btn-outline-secondary">
+        <a asp-page="/Index"
+           class="btn btn-outline-secondary">
             Switch Account
         </a>
+
     </div>
 
     <!-- MESSAGES -->
@@ -28,6 +32,13 @@
     {
         <div class="alert alert-success">
             @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
         </div>
     }
 
@@ -41,41 +52,48 @@
 
     <div class="row mb-4">
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
                     <h6>Total Accounts</h6>
-                    <h2>@Model.Accounts.Count</h2>
+                    <h2>@Model.TotalAccounts</h2>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
                     <h6>Total Deliveries</h6>
-                    <h2>@Model.Deliveries.Count</h2>
+                    <h2>@Model.TotalDeliveries</h2>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <h6>Requests Awaiting Quote</h6>
+                    <h2>@Model.PendingRequests</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
                     <h6>Unassigned Deliveries</h6>
-                    <h2>
-                        @Model.Deliveries.Count(
-                                 d => d.DeliveryStaffId == null)
-                    </h2>
+                    <h2>@Model.UnassignedDeliveries</h2>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- NAVIGATION -->
+    <!-- PAGE NAVIGATION -->
 
     <ul class="nav nav-pills mb-4">
+
         <li class="nav-item">
             <a class="nav-link" href="#createAccount">
                 Create Account
@@ -83,31 +101,34 @@
         </li>
 
         <li class="nav-item">
-            <a class="nav-link" href="#createDelivery">
-                Create Delivery
+            <a class="nav-link" href="#deliveryRequests">
+                Delivery Requests
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link" href="#accounts">
-                View Accounts
+                All Accounts
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link" href="#deliveries">
-                View Deliveries
+                All Deliveries
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link" href="#assignDelivery">
-                Assign Driver
+                Assign Delivery
             </a>
         </li>
+
     </ul>
 
+    <!-- ===================================== -->
     <!-- CREATE ACCOUNT -->
+    <!-- ===================================== -->
 
     <section id="createAccount" class="card mb-4">
 
@@ -120,188 +141,458 @@
             <form method="post"
                   asp-page-handler="CreateAccount">
 
+                <!-- ACCOUNT TYPE -->
+
                 <div class="mb-3">
+
                     <label class="form-label">
                         Account Type
                     </label>
 
                     <select asp-for="AccountInput.AccountType"
-                            id="accountType"
                             class="form-select"
+                            id="accountType"
                             onchange="showAccountFields()">
 
-                        <option value="Customer">Customer</option>
-                        <option value="OfficeStaff">Office Staff</option>
-                        <option value="DeliveryStaff">Delivery Staff</option>
+                        <option value="Customer">
+                            Customer
+                        </option>
+
+                        <option value="OfficeStaff">
+                            Office Staff
+                        </option>
+
+                        <option value="DeliveryStaff">
+                            Delivery Staff
+                        </option>
 
                     </select>
+
                 </div>
 
+                <!-- NAME -->
+
                 <div class="mb-3">
-                    <label class="form-label">Name</label>
+
+                    <label asp-for="AccountInput.Name"
+                           class="form-label">
+                        Full Name
+                    </label>
+
                     <input asp-for="AccountInput.Name"
                            class="form-control" />
+
                 </div>
 
+                <!-- EMAIL -->
+
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
+
+                    <label asp-for="AccountInput.Email"
+                           class="form-label">
+                        Email Address
+                    </label>
+
                     <input asp-for="AccountInput.Email"
                            type="email"
                            class="form-control" />
+
                 </div>
 
+                <!-- PASSWORD -->
+
                 <div class="mb-3">
-                    <label class="form-label">Password</label>
+
+                    <label asp-for="AccountInput.Password"
+                           class="form-label">
+                        Password
+                    </label>
+
                     <input asp-for="AccountInput.Password"
                            type="password"
                            class="form-control" />
+
                 </div>
 
                 <!-- CUSTOMER FIELDS -->
 
-                <div id="customerFields" class="mb-3">
-                    <label class="form-label">
-                        Delivery Address
-                    </label>
+                <div id="customerFields">
 
-                    <input asp-for="AccountInput.DeliveryAddress"
-                           class="form-control" />
-                </div>
+                    <div class="mb-3">
 
-                <!-- OFFICE STAFF FIELDS -->
-
-                <div id="officeFields"
-                     class="mb-3"
-                     style="display:none;">
-
-                    <label class="form-label">
-                        Department
-                    </label>
-
-                    <input asp-for="AccountInput.Department"
-                           class="form-control" />
-                </div>
-
-                <!-- DELIVERY STAFF FIELDS -->
-
-                <div id="driverFields"
-                     class="mb-3"
-                     style="display:none;">
-
-                    <div class="form-check">
-                        <input asp-for="AccountInput.IsAvailable"
-                               class="form-check-input" />
-                        <label class="form-check-label">
-                            Available
+                        <label asp-for="AccountInput.DeliveryAddress"
+                               class="form-label">
+                            Delivery Address
                         </label>
+
+                        <input asp-for="AccountInput.DeliveryAddress"
+                               class="form-control" />
+
                     </div>
 
                 </div>
 
-                <button type="submit" class="btn btn-primary">
+                <!-- OFFICE STAFF FIELDS -->
+
+                <div id="officeStaffFields" style="display:none;">
+
+                    <div class="mb-3">
+
+                        <label asp-for="AccountInput.Department"
+                               class="form-label">
+                            Department
+                        </label>
+
+                        <input asp-for="AccountInput.Department"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+                <!-- DELIVERY STAFF FIELDS -->
+
+                <div id="deliveryStaffFields" style="display:none;">
+
+                    <div class="form-check mb-3">
+
+                        <input asp-for="AccountInput.IsAvailable"
+                               class="form-check-input" />
+
+                        <label asp-for="AccountInput.IsAvailable"
+                               class="form-check-label">
+                            Available / Clocked In
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary">
                     Create Account
                 </button>
 
             </form>
 
         </div>
+
     </section>
 
-    <!-- CREATE DELIVERY -->
+    <!-- ===================================== -->
+    <!-- DELIVERY REQUESTS AND QUOTES -->
+    <!-- ===================================== -->
 
-    <section id="createDelivery" class="card mb-4">
+    <section id="deliveryRequests" class="card mb-4">
 
-        <div class="card-header">
-            <h4>Create Delivery</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h4 class="mb-0">Delivery Requests & Quotes</h4>
+
+            <span class="badge bg-secondary">
+                @Model.DeliveryRequests.Count Requests
+            </span>
+
         </div>
 
         <div class="card-body">
 
-            <form method="post"
-                  asp-page-handler="CreateDelivery">
+            <p class="text-muted">
+                Review customer delivery requests and provide quotes.
+                Once a customer accepts a quote, an actual delivery
+                will be created automatically.
+            </p>
 
-                <div class="mb-3">
-                    <label class="form-label">
-                        Customer
-                    </label>
-
-                    <select asp-for="DeliveryInput.CustomerId"
-                            class="form-select">
-
-                        <option value="">
-                            -- Select Customer --
-                        </option>
-
-                        @foreach (var customer in Model.Customers)
-                        {
-                            <option value="@customer.Id">
-                                @customer.Name (@customer.Email)
-                            </option>
-                        }
-
-                    </select>
+            @if (!Model.DeliveryRequests.Any())
+            {
+                <div class="alert alert-info">
+                    No delivery requests have been submitted.
                 </div>
+            }
+            else
+            {
+                <div class="table-responsive">
 
-                <h5>Parcel Details</h5>
+                    <table class="table table-striped table-bordered align-middle">
 
-                <div class="row">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Customer</th>
+                                <th>Created</th>
+                                <th>Pickup</th>
+                                <th>Destination</th>
+                                <th>Parcels</th>
+                                <th>Status</th>
+                                <th>Quote</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
 
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">
-                            Length (cm)
-                        </label>
-                        <input asp-for="DeliveryInput.Length"
-                               type="number"
-                               step="0.01"
-                               min="0.01"
-                               class="form-control" />
-                    </div>
+                        <tbody>
 
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">
-                            Width (cm)
-                        </label>
-                        <input asp-for="DeliveryInput.Width"
-                               type="number"
-                               step="0.01"
-                               min="0.01"
-                               class="form-control" />
-                    </div>
+                            @foreach (var request in Model.DeliveryRequests)
+                            {
+                                <tr>
 
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">
-                            Height (cm)
-                        </label>
-                        <input asp-for="DeliveryInput.Height"
-                               type="number"
-                               step="0.01"
-                               min="0.01"
-                               class="form-control" />
-                    </div>
+                                    <!-- REQUEST ID -->
 
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">
-                            Weight (kg)
-                        </label>
-                        <input asp-for="DeliveryInput.Weight"
-                               type="number"
-                               step="0.01"
-                               min="0.01"
-                               class="form-control" />
-                    </div>
+                                    <td>
+                                        <small>
+                                            @request.Id.ToString()[..8]
+                                        </small>
+                                    </td>
+
+                                    <!-- CUSTOMER -->
+
+                                    <td>
+
+                                        <strong>
+                                            @request.Customer?.Name
+                                        </strong>
+
+                                        <br />
+
+                                        <small class="text-muted">
+                                            @request.Customer?.Email
+                                        </small>
+
+                                    </td>
+
+                                    <!-- CREATED -->
+
+                                    <td>
+                                        @(request.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    </td>
+
+                                    <!-- PICKUP -->
+
+                                    <td>
+                                        @request.PickupAddress
+                                    </td>
+
+                                    <!-- DESTINATION -->
+
+                                    <td>
+                                        @request.DeliveryAddress
+                                    </td>
+
+                                    <!-- PARCEL DETAILS -->
+
+                                    <td>
+
+                                        @if (request.Parcels.Any())
+                                        {
+                                            @foreach (var parcel in request.Parcels)
+                                            {
+                                                <div class="mb-2">
+
+                                                    <strong>Weight:</strong>
+                                                    @parcel.Weight kg
+
+                                                    <br />
+
+                                                    <strong>Dimensions:</strong>
+                                                    @parcel.Length x
+                                                    @parcel.Width x
+                                                    @parcel.Height cm
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No parcels
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- REQUEST STATUS -->
+
+                                    <td>
+
+                                        @switch (request.Status)
+                                        {
+                                            case DeliveryRequestStatus.PendingReview:
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Pending Review
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.AwaitingResponse:
+
+                                                <span class="badge bg-info text-dark">
+                                                    Awaiting Response
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.Accepted:
+
+                                                <span class="badge bg-success">
+                                                    Accepted
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.Declined:
+
+                                                <span class="badge bg-danger">
+                                                    Declined
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    <!-- EXISTING QUOTE -->
+
+                                    <td>
+
+                                        @if (request.QuotedCost.HasValue)
+                                        {
+                                            <strong>
+                                                @request.QuotedCost.Value.ToString("C")
+                                            </strong>
+
+                                            <div class="small mt-2">
+
+                                                <strong>Pickup:</strong>
+
+                                                <br />
+
+                                                @(request.EstimatedPickupTime?.ToString("dd/MM/yyyy HH:mm"))
+
+                                            </div>
+
+                                            <div class="small mt-2">
+
+                                                <strong>Delivery:</strong>
+
+                                                <br />
+
+                                                @(request.EstimatedDeliveryTime?.ToString("dd/MM/yyyy HH:mm"))
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not quoted
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- QUOTE FORM / ACTION -->
+
+                                    <td>
+
+                                        @if (request.Status ==
+                                       DeliveryRequestStatus.PendingReview)
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="QuoteRequest">
+
+                                                <input type="hidden"
+                                                       name="QuoteInput.RequestId"
+                                                       value="@request.Id" />
+
+                                                <!-- QUOTED COST -->
+
+                                                <div class="mb-2">
+
+                                                    <label class="form-label">
+                                                        Quoted Cost ($)
+                                                    </label>
+
+                                                    <input type="number"
+                                                           name="QuoteInput.QuotedCost"
+                                                           min="0.01"
+                                                           step="0.01"
+                                                           class="form-control"
+                                                           required />
+
+                                                </div>
+
+                                                <!-- PICKUP TIME -->
+
+                                                <div class="mb-2">
+
+                                                    <label class="form-label">
+                                                        Estimated Pickup
+                                                    </label>
+
+                                                    <input type="datetime-local"
+                                                           name="QuoteInput.EstimatedPickupTime"
+                                                           class="form-control"
+                                                           required />
+
+                                                </div>
+
+                                                <!-- DELIVERY TIME -->
+
+                                                <div class="mb-2">
+
+                                                    <label class="form-label">
+                                                        Estimated Delivery
+                                                    </label>
+
+                                                    <input type="datetime-local"
+                                                           name="QuoteInput.EstimatedDeliveryTime"
+                                                           class="form-control"
+                                                           required />
+
+                                                </div>
+
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-sm w-100">
+                                                    Send Quote
+                                                </button>
+
+                                            </form>
+                                        }
+                                        else if (request.Status ==
+                                        DeliveryRequestStatus.AwaitingResponse)
+                                        {
+                                            <span class="text-info">
+                                                Waiting for Customer
+                                            </span>
+                                        }
+                                        else if (request.Status ==
+                                        DeliveryRequestStatus.Accepted)
+                                        {
+                                            <span class="text-success">
+                                                Delivery Created
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Quote Declined
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
 
                 </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Create Delivery
-                </button>
-
-            </form>
+            }
 
         </div>
+
     </section>
 
-    <!-- VIEW ACCOUNTS -->
+    <!-- ===================================== -->
+    <!-- ALL ACCOUNTS -->
+    <!-- ===================================== -->
 
     <section id="accounts" class="card mb-4">
 
@@ -309,57 +600,87 @@
             <h4>All Accounts</h4>
         </div>
 
-        <div class="card-body table-responsive">
+        <div class="card-body">
 
-            <table class="table table-striped table-bordered">
+            <div class="table-responsive">
 
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Type</th>
-                        <th>Additional Information</th>
-                    </tr>
-                </thead>
+                <table class="table table-striped table-bordered">
 
-                <tbody>
-                    @foreach (var account in Model.Accounts)
-                    {
+                    <thead>
                         <tr>
-                            <td>@account.Name</td>
-                            <td>@account.Email</td>
-                            <td>@account.GetType().Name</td>
-
-                            <td>
-                                @if (account is Customer customer)
-                                {
-                                    <span>
-                                        Address: @customer.DeliveryAddress
-                                    </span>
-                                }
-                                else if (account is OfficeStaff office)
-                                {
-                                    <span>
-                                        Department: @office.Department
-                                    </span>
-                                }
-                                else if (account is DeliveryStaff driver)
-                                {
-                                    <span>
-                                        Available: @driver.IsAvailable
-                                    </span>
-                                }
-                            </td>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Account Type</th>
+                            <th>Additional Information</th>
                         </tr>
-                    }
-                </tbody>
+                    </thead>
 
-            </table>
+                    <tbody>
+
+                        @foreach (var account in Model.Accounts)
+                        {
+                            <tr>
+
+                                <td>@account.Name</td>
+
+                                <td>@account.Email</td>
+
+                                <td>
+                                    @account.GetType().Name
+                                </td>
+
+                                <td>
+
+                                    @if (account is Customer customer)
+                                    {
+                                        <span>
+                                            <strong>Delivery Address:</strong>
+                                            @customer.DeliveryAddress
+                                        </span>
+                                    }
+                                    else if (account is OfficeStaff staff)
+                                    {
+                                        <span>
+                                            <strong>Department:</strong>
+                                            @staff.Department
+                                        </span>
+                                    }
+                                    else if (account is DeliveryStaff driver)
+                                    {
+                                        <strong>Availability:</strong>
+
+                                        @if (driver.IsAvailable)
+                                        {
+                                            <span class="badge bg-success">
+                                                Clocked In
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Clocked Out
+                                            </span>
+                                        }
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
+
     </section>
 
-    <!-- VIEW DELIVERIES -->
+    <!-- ===================================== -->
+    <!-- ALL DELIVERIES -->
+    <!-- ===================================== -->
 
     <section id="deliveries" class="card mb-4">
 
@@ -367,75 +688,183 @@
             <h4>All Deliveries</h4>
         </div>
 
-        <div class="card-body table-responsive">
+        <div class="card-body">
 
-            <table class="table table-striped table-bordered">
+            @if (!Model.Deliveries.Any())
+            {
+                <div class="alert alert-info">
+                    No deliveries have been created yet.
+                    Deliveries are created when customers accept quotes.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
 
-                <thead>
-                    <tr>
-                        <th>Delivery ID</th>
-                        <th>Customer</th>
-                        <th>Status</th>
-                        <th>Driver</th>
-                        <th>Created</th>
-                        <th>Parcels</th>
-                    </tr>
-                </thead>
+                    <table class="table table-striped table-bordered align-middle">
 
-                <tbody>
-                    @foreach (var delivery in Model.Deliveries)
-                    {
-                        <tr>
-                            <td>
-                                <small>@delivery.Id</small>
-                            </td>
+                        <thead>
+                            <tr>
+                                <th>Delivery ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Assigned Staff</th>
+                                <th>Created</th>
+                                <th>Parcels</th>
+                            </tr>
+                        </thead>
 
-                            <td>
-                                @delivery.Customer?.Name
-                            </td>
+                        <tbody>
 
-                            <td>
-                                <span class="badge bg-secondary">
-                                    @delivery.Status
-                                </span>
-                            </td>
+                            @foreach (var delivery in Model.Deliveries)
+                            {
+                                <tr>
 
-                            <td>
-                                @(delivery.DeliveryStaff?.Name
-                                    ?? "Unassigned")
-                            </td>
+                                    <!-- DELIVERY ID -->
 
-                            <td>
-                                @delivery.CreatedAt
-                                .ToLocalTime()
-                                .ToString("dd/MM/yyyy HH:mm")
-                            </td>
+                                    <td>
+                                        <small>
+                                            @delivery.Id.ToString()[..8]
+                                        </small>
+                                    </td>
 
-                            <td>
-                                @foreach (var parcel in delivery.Parcels)
-                                {
-                                    <div class="mb-2">
-                                        <strong>Weight:</strong>
-                                        @parcel.Weight kg
+                                    <!-- CUSTOMER -->
+
+                                    <td>
+                                        <strong>
+                                            @delivery.Customer?.Name
+                                        </strong>
+
                                         <br />
 
-                                        <strong>Dimensions:</strong>
-                                        @parcel.Length x
-                                        @parcel.Width x
-                                        @parcel.Height cm
-                                    </div>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
+                                        <small class="text-muted">
+                                            @delivery.Customer?.Email
+                                        </small>
+                                    </td>
 
-            </table>
+                                    <!-- STATUS -->
+
+                                    <td>
+
+                                        @switch (delivery.Status)
+                                        {
+                                            case DeliveryStatus.Pending:
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Pending
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Allocated:
+
+                                                <span class="badge bg-info text-dark">
+                                                    Allocated
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.ReadyForDelivery:
+
+                                                <span class="badge bg-primary">
+                                                    Ready for Delivery
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.PickedUp:
+
+                                                <span class="badge bg-primary">
+                                                    Picked Up
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Delivered:
+
+                                                <span class="badge bg-success">
+                                                    Delivered
+                                                </span>
+                                                break;
+
+                                            case DeliveryStatus.Failed:
+
+                                                <span class="badge bg-danger">
+                                                    Failed
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    <!-- ASSIGNED STAFF -->
+
+                                    <td>
+
+                                        @if (delivery.DeliveryStaff != null)
+                                        {
+                                            @delivery.DeliveryStaff.Name
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Unassigned
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- CREATED -->
+
+                                    <td>
+                                        @(delivery.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    </td>
+
+                                    <!-- PARCELS -->
+
+                                    <td>
+
+                                        @if (delivery.Parcels.Any())
+                                        {
+                                            @foreach (var parcel in delivery.Parcels)
+                                            {
+                                                <div class="mb-2">
+
+                                                    <strong>Weight:</strong>
+                                                    @parcel.Weight kg
+
+                                                    <br />
+
+                                                    <strong>Dimensions:</strong>
+                                                    @parcel.Length x
+                                                    @parcel.Width x
+                                                    @parcel.Height cm
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No parcels
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
 
         </div>
+
     </section>
 
+    <!-- ===================================== -->
     <!-- ASSIGN DELIVERY STAFF -->
+    <!-- ===================================== -->
 
     <section id="assignDelivery" class="card mb-5">
 
@@ -445,13 +874,21 @@
 
         <div class="card-body">
 
+            <p class="text-muted">
+                Assign a delivery to a staff member who is currently
+                clocked in and available.
+            </p>
+
             <form method="post"
                   asp-page-handler="AssignDelivery">
 
+                <!-- DELIVERY -->
+
                 <div class="mb-3">
 
-                    <label class="form-label">
-                        Delivery
+                    <label asp-for="AssignmentInput.DeliveryId"
+                           class="form-label">
+                        Select Delivery
                     </label>
 
                     <select asp-for="AssignmentInput.DeliveryId"
@@ -467,9 +904,13 @@
                         d.Status != DeliveryStatus.Failed))
                         {
                             <option value="@delivery.Id">
-                                @delivery.Customer?.Name -
-                                @delivery.Status -
+
                                 @delivery.Id.ToString()[..8]
+                                -
+                                @delivery.Customer?.Name
+                                -
+                                @delivery.Status
+
                             </option>
                         }
 
@@ -477,17 +918,20 @@
 
                 </div>
 
+                <!-- DELIVERY STAFF -->
+
                 <div class="mb-3">
 
-                    <label class="form-label">
-                        Delivery Staff
+                    <label asp-for="AssignmentInput.DeliveryStaffId"
+                           class="form-label">
+                        Select Delivery Staff
                     </label>
 
                     <select asp-for="AssignmentInput.DeliveryStaffId"
                             class="form-select">
 
                         <option value="">
-                            -- Select Driver --
+                            -- Select Available Staff --
                         </option>
 
                         @foreach (var driver in Model.Drivers
@@ -502,32 +946,38 @@
 
                 </div>
 
-                <button type="submit" class="btn btn-success">
-                    Assign Driver
+                <button type="submit"
+                        class="btn btn-primary">
+                    Assign Delivery
                 </button>
 
             </form>
 
         </div>
+
     </section>
 
 </div>
 
-@section Scripts {
-    <script>
-        function showAccountFields() {
-            const type = document.getElementById("accountType").value;
+<!-- ===================================== -->
+<!-- ACCOUNT TYPE FIELD VISIBILITY -->
+<!-- ===================================== -->
 
-            document.getElementById("customerFields").style.display =
-                type === "Customer" ? "block" : "none";
+<script>
+    function showAccountFields() {
 
-            document.getElementById("officeFields").style.display =
-                type === "OfficeStaff" ? "block" : "none";
+        const accountType =
+            document.getElementById("accountType").value;
 
-            document.getElementById("driverFields").style.display =
-                type === "DeliveryStaff" ? "block" : "none";
-        }
+        document.getElementById("customerFields").style.display =
+            accountType === "Customer" ? "block" : "none";
 
-        document.addEventListener("DOMContentLoaded", showAccountFields);
-    </script>
-}
+        document.getElementById("officeStaffFields").style.display =
+            accountType === "OfficeStaff" ? "block" : "none";
+
+        document.getElementById("deliveryStaffFields").style.display =
+            accountType === "DeliveryStaff" ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", showAccountFields);
+</script>

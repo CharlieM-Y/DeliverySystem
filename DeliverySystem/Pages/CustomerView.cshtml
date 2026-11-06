@@ -8,7 +8,9 @@
 
 <div class="container mt-4">
 
+    <!-- ===================================== -->
     <!-- HEADER -->
+    <!-- ===================================== -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
@@ -27,7 +29,9 @@
 
     </div>
 
-    <!-- SUCCESS MESSAGE -->
+    <!-- ===================================== -->
+    <!-- MESSAGES -->
+    <!-- ===================================== -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success">
@@ -35,55 +39,71 @@
         </div>
     }
 
-    <!-- VALIDATION ERRORS -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     @if (!ViewData.ModelState.IsValid)
     {
         <div asp-validation-summary="All"
              class="alert alert-danger"></div>
     }
 
-    <!-- SUMMARY CARDS -->
+    <!-- ===================================== -->
+    <!-- DASHBOARD SUMMARY -->
+    <!-- ===================================== -->
 
     <div class="row mb-4">
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
-
                     <h6>Total Deliveries</h6>
                     <h2>@Model.TotalDeliveries</h2>
-
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
-
                     <h6>Active Deliveries</h6>
                     <h2>@Model.ActiveDeliveries</h2>
-
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card bg-light mb-3">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
                 <div class="card-body">
-
                     <h6>Completed Deliveries</h6>
                     <h2>@Model.CompletedDeliveries</h2>
-
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- ===================================== -->
     <!-- PAGE NAVIGATION -->
+    <!-- ===================================== -->
 
     <ul class="nav nav-pills mb-4">
+
+        <li class="nav-item">
+            <a class="nav-link" href="#createRequest">
+                Create Request
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="#requests">
+                My Requests
+            </a>
+        </li>
 
         <li class="nav-item">
             <a class="nav-link" href="#deliveries">
@@ -99,12 +119,456 @@
 
     </ul>
 
+    <!-- ===================================== -->
+    <!-- CREATE DELIVERY REQUEST -->
+    <!-- ===================================== -->
+
+    <section id="createRequest" class="card mb-4">
+
+        <div class="card-header">
+            <h4>Create Delivery Request</h4>
+        </div>
+
+        <div class="card-body">
+
+            <p class="text-muted">
+                Enter the pickup and delivery addresses,
+                along with the parcel details.
+                Office Staff will review your request
+                and provide a quote.
+            </p>
+
+            <form method="post"
+                  asp-page-handler="CreateRequest">
+
+                <!-- PICKUP ADDRESS -->
+
+                <div class="mb-3">
+
+                    <label asp-for="RequestInput.PickupAddress"
+                           class="form-label">
+                        Pickup Address
+                    </label>
+
+                    <input asp-for="RequestInput.PickupAddress"
+                           class="form-control"
+                           placeholder="Enter pickup address" />
+
+                    <span asp-validation-for="RequestInput.PickupAddress"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- DELIVERY ADDRESS -->
+
+                <div class="mb-3">
+
+                    <label asp-for="RequestInput.DeliveryAddress"
+                           class="form-label">
+                        Delivery Address
+                    </label>
+
+                    <input asp-for="RequestInput.DeliveryAddress"
+                           class="form-control"
+                           placeholder="Enter delivery address" />
+
+                    <span asp-validation-for="RequestInput.DeliveryAddress"
+                          class="text-danger"></span>
+
+                </div>
+
+                <h5 class="mt-4 mb-3">Parcel Details</h5>
+
+                <div class="row">
+
+                    <!-- LENGTH -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="RequestInput.Length"
+                               class="form-label">
+                            Length (cm)
+                        </label>
+
+                        <input asp-for="RequestInput.Length"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control" />
+
+                        <span asp-validation-for="RequestInput.Length"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- WIDTH -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="RequestInput.Width"
+                               class="form-label">
+                            Width (cm)
+                        </label>
+
+                        <input asp-for="RequestInput.Width"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control" />
+
+                        <span asp-validation-for="RequestInput.Width"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- HEIGHT -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="RequestInput.Height"
+                               class="form-label">
+                            Height (cm)
+                        </label>
+
+                        <input asp-for="RequestInput.Height"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control" />
+
+                        <span asp-validation-for="RequestInput.Height"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- WEIGHT -->
+
+                    <div class="col-md-3 mb-3">
+
+                        <label asp-for="RequestInput.Weight"
+                               class="form-label">
+                            Weight (kg)
+                        </label>
+
+                        <input asp-for="RequestInput.Weight"
+                               type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control" />
+
+                        <span asp-validation-for="RequestInput.Weight"
+                              class="text-danger"></span>
+
+                    </div>
+
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Submit Delivery Request
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+    <!-- ===================================== -->
+    <!-- MY DELIVERY REQUESTS -->
+    <!-- ===================================== -->
+
+    <section id="requests" class="card mb-4">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h4 class="mb-0">My Delivery Requests</h4>
+
+            <span class="badge bg-secondary">
+                @Model.DeliveryRequests.Count Requests
+            </span>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.DeliveryRequests.Any())
+            {
+                <div class="alert alert-info">
+                    You have not submitted any delivery requests yet.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-striped table-bordered align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Created</th>
+                                <th>Pickup</th>
+                                <th>Destination</th>
+                                <th>Parcels</th>
+                                <th>Status</th>
+                                <th>Quote</th>
+                                <th>Estimated Times</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var request in Model.DeliveryRequests)
+                            {
+                                <tr>
+
+                                    <!-- REQUEST ID -->
+
+                                    <td>
+                                        <small>
+                                            @request.Id.ToString()[..8]
+                                        </small>
+                                    </td>
+
+                                    <!-- CREATED -->
+
+                                    <td>
+                                        @(request.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                                    </td>
+
+                                    <!-- PICKUP -->
+
+                                    <td>
+                                        @request.PickupAddress
+                                    </td>
+
+                                    <!-- DESTINATION -->
+
+                                    <td>
+                                        @request.DeliveryAddress
+                                    </td>
+
+                                    <!-- PARCELS -->
+
+                                    <td>
+
+                                        @if (request.Parcels.Any())
+                                        {
+                                            @foreach (var parcel in request.Parcels)
+                                            {
+                                                <div class="mb-2">
+
+                                                    <strong>Weight:</strong>
+                                                    @parcel.Weight kg
+
+                                                    <br />
+
+                                                    <strong>Dimensions:</strong>
+                                                    @parcel.Length x
+                                                    @parcel.Width x
+                                                    @parcel.Height cm
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                No parcels
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- STATUS -->
+
+                                    <td>
+
+                                        @switch (request.Status)
+                                        {
+                                            case DeliveryRequestStatus.PendingReview:
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Pending Review
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.AwaitingResponse:
+
+                                                <span class="badge bg-info text-dark">
+                                                    Awaiting Response
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.Accepted:
+
+                                                <span class="badge bg-success">
+                                                    Accepted
+                                                </span>
+                                                break;
+
+                                            case DeliveryRequestStatus.Declined:
+
+                                                <span class="badge bg-danger">
+                                                    Declined
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    <!-- QUOTED COST -->
+
+                                    <td>
+
+                                        @if (request.QuotedCost.HasValue)
+                                        {
+                                            <strong>
+                                                @request.QuotedCost.Value.ToString("C")
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not quoted
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- ESTIMATED TIMES -->
+
+                                    <td>
+
+                                        @if (request.EstimatedPickupTime.HasValue)
+                                        {
+                                            <div class="mb-2">
+
+                                                <strong>Pickup:</strong>
+
+                                                <br />
+
+                                                @(request.EstimatedPickupTime.Value.ToString("dd/MM/yyyy HH:mm"))
+
+                                            </div>
+                                        }
+
+                                        @if (request.EstimatedDeliveryTime.HasValue)
+                                        {
+                                            <div>
+
+                                                <strong>Delivery:</strong>
+
+                                                <br />
+
+                                                @(request.EstimatedDeliveryTime.Value.ToString("dd/MM/yyyy HH:mm"))
+
+                                            </div>
+                                        }
+
+                                        @if (!request.EstimatedPickupTime.HasValue &&
+                                       !request.EstimatedDeliveryTime.HasValue)
+                                        {
+                                            <span class="text-muted">
+                                                Not estimated
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- ACTIONS -->
+
+                                    <td>
+
+                                        @if (request.Status ==
+                                       DeliveryRequestStatus.AwaitingResponse)
+                                        {
+                                            <!-- ACCEPT QUOTE -->
+
+                                            <form method="post"
+                                                  asp-page-handler="AcceptQuote"
+                                                  class="mb-2">
+
+                                                <input type="hidden"
+                                                       name="ResponseRequestId"
+                                                       value="@request.Id" />
+
+                                                <button type="submit"
+                                                        class="btn btn-success btn-sm w-100">
+                                                    Accept Quote
+                                                </button>
+
+                                            </form>
+
+                                            <!-- DECLINE QUOTE -->
+
+                                            <form method="post"
+                                                  asp-page-handler="DeclineQuote">
+
+                                                <input type="hidden"
+                                                       name="ResponseRequestId"
+                                                       value="@request.Id" />
+
+                                                <button type="submit"
+                                                        class="btn btn-danger btn-sm w-100">
+                                                    Decline Quote
+                                                </button>
+
+                                            </form>
+                                        }
+                                        else if (request.Status ==
+                                        DeliveryRequestStatus.Accepted)
+                                        {
+                                            <span class="text-success">
+                                                Delivery Created
+                                            </span>
+                                        }
+                                        else if (request.Status ==
+                                        DeliveryRequestStatus.Declined)
+                                        {
+                                            <span class="text-muted">
+                                                Quote Declined
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Waiting for Quote
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </section>
+
+    <!-- ===================================== -->
     <!-- MY DELIVERIES -->
+    <!-- ===================================== -->
 
     <section id="deliveries" class="card mb-4">
 
-        <div class="card-header">
-            <h4>My Deliveries</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h4 class="mb-0">My Deliveries</h4>
+
+            <span class="badge bg-secondary">
+                @Model.TotalDeliveries Deliveries
+            </span>
+
         </div>
 
         <div class="card-body">
@@ -113,13 +577,14 @@
             {
                 <div class="alert alert-info">
                     You currently have no deliveries.
+                    Accept a delivery quote to create a delivery.
                 </div>
             }
             else
             {
                 <div class="table-responsive">
 
-                    <table class="table table-striped table-bordered">
+                    <table class="table table-striped table-bordered align-middle">
 
                         <thead>
                             <tr>
@@ -141,11 +606,11 @@
 
                                     <td>
                                         <small>
-                                            @delivery.Id
+                                            @delivery.Id.ToString()[..8]
                                         </small>
                                     </td>
 
-                                    <!-- DELIVERY STATUS -->
+                                    <!-- STATUS -->
 
                                     <td>
 
@@ -196,15 +661,13 @@
 
                                     </td>
 
-                                    <!-- CREATED DATE -->
+                                    <!-- CREATED -->
 
                                     <td>
-                                        @delivery.CreatedAt
-                                        .ToLocalTime()
-                                        .ToString("dd/MM/yyyy HH:mm")
+                                        @(delivery.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
                                     </td>
 
-                                    <!-- ASSIGNED DELIVERY STAFF -->
+                                    <!-- DELIVERY STAFF -->
 
                                     <td>
 
@@ -281,7 +744,9 @@
 
     </section>
 
-    <!-- EDIT PROFILE -->
+    <!-- ===================================== -->
+    <!-- EDIT CUSTOMER PROFILE -->
+    <!-- ===================================== -->
 
     <section id="profile" class="card mb-5">
 
@@ -361,8 +826,8 @@
                            placeholder="Leave blank to keep current password" />
 
                     <small class="text-muted">
-                        Leave this field empty if you do not want
-                        to change your password.
+                        Leave this field empty if you do not
+                        want to change your password.
                     </small>
 
                 </div>
@@ -381,3 +846,4 @@
     </section>
 
 </div>
+
